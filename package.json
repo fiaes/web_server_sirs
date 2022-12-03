@@ -1,0 +1,25 @@
+{
+  "name": "web_server_sirs",
+  "version": "1.0.0",
+  "description": "WebService with remote Database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fiaes/web_server_sirs.git"
+  },
+  "author": "Grupo55",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fiaes/web_server_sirs/issues"
+  },
+  "homepage": "https://github.com/fiaes/web_server_sirs#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
+    "mysql2-promise": "^0.1.4"
+  }
+}
