@@ -1,9 +1,24 @@
 const express = require('express')
 const app = express()
-const port = 3000
-const valuesRouter = require('./routes/values')
 
-app.use(express.json());
+const mysql = require('mysql');
+const connection = mysql.createConnection({
+  host:"localhost", //192.168.0.100
+  user:"nodejs",
+  password:"password",
+  database:"test",
+});
+
+connection.connect((err) => {
+  if (err) throw err;
+  console.log('Connected to MySQL Server!');
+});
+
+
+//const port = 3000
+//const valuesRouter = require('./routes/values')
+
+/*app.use(express.json());
 
 app.use(
   express.urlencoded({
@@ -16,7 +31,7 @@ app.get('/', (req, res) => {
 })
 
 app.use("/values", valuesRouter);
-/* Error handler middleware */
+/* Error handler middleware 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
@@ -28,3 +43,4 @@ app.use((err, req, res, next) => {
 app.listen(port, () => {
   console.log('Example app listening on port ${port}')
 })
+*/

@@ -18,8 +18,6 @@
   "homepage": "https://github.com/fiaes/web_server_sirs#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "mysql": "^2.18.1",
-    "mysql2": "^2.3.3",
-    "mysql2-promise": "^0.1.4"
+    "mysql": "^2.18.1"
   }
 }
