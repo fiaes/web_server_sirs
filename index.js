@@ -1,9 +1,9 @@
 const express = require('express')
 const app = express()
 
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const connection = mysql.createConnection({
-  host:"localhost", //192.168.0.100
+  host:"192.168.0.100",
   user:"nodejs",
   password:"password",
   database:"test",
