@@ -1,8 +1,8 @@
 const config = {
-  host:"localhost", //192.168.0.100
+  host:"192.168.0.100",
   user:"nodejs",
   password:"password",
-  database:"test",
-  debug : false
+  database:"remotedb",
+  debug : true
 };
 module.exports = config;
