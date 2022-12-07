@@ -3,6 +3,6 @@ const config = {
   user:"nodejs",
   password:"password",
   database:"test",
+  debug : false
 };
 module.exports = config;
-    
