@@ -13,7 +13,7 @@ async function consumptions_list() {
 // Get a single appliance_consumption
 async function get_consumption(id) {
     let selectQuery = 'SELECT * FROM Appliance_consumption WHERE id = ?';
-    connection.query(selectQuery, [id], function(err, result, fields) {
+    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
         if (err) throw err;
         console.log(result);
     });

@@ -13,7 +13,7 @@ async function contracts_list() {
 // Get a single Contract
 async function get_contract(id) {
     let selectQuery = 'SELECT * FROM Contract WHERE id = ?';    
-    connection.query(selectQuery,[id], function (err, result, fields) {
+    connection.query(selectQuery,[id.params.id], function (err, result, fields) {
         if (err) throw err;
         console.log(result);
       });

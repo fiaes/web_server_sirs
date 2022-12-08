@@ -13,7 +13,7 @@ async function appliances_list() {
 // Get a single appliance
 async function get_appliance(id) {
     let selectQuery = 'SELECT * FROM Appliance WHERE id = ?';
-    connection.query(selectQuery, [id], function(err, result, fields) {
+    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
         if (err) throw err;
         console.log(result);
     });

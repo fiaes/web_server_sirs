@@ -13,7 +13,7 @@ async function roles_list() {
 // Get a single role
 async function get_role(id) {
     let selectQuery = 'SELECT * FROM Rates WHERE id = ?';
-    connection.query(selectQuery, [id], function(err, result, fields) {
+    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
         if (err) throw err;
         console.log(result);
     });

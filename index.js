@@ -1,5 +1,7 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
+var createError = require('http-errors');
+var routes = require('./routes/routes');
 const fs = require('fs');
 const mysql = require('mysql2');
 const connection = mysql.createConnection({
@@ -16,9 +18,30 @@ const connection = mysql.createConnection({
 
 
 connection.connect();
-connection.query('SELECT * FROM Client', function(error, results, fields) {
-    if (error) throw error;
-    console.log('The solution is: ', results);
+//connection.query('SELECT * FROM Client', function(error, results, fields) {
+  //  if (error) throw error;
+    //console.log('The solution is: ', results);
+//});
+
+//connection.end();
+
+//var cors = require("cors");
+//app.use(cors());
+app.listen(3019);
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use('/', routes);
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  // render the error page
+  res.status(err.status || 500);
 });
 
-connection.end();
+module.exports = app;

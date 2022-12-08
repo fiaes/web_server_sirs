@@ -13,7 +13,7 @@ async function rates_list() {
 // Get a single rate
 async function get_rate(id) {
     let selectQuery = 'SELECT * FROM Rates WHERE id = ?';
-    connection.query(selectQuery, [id], function(err, result, fields) {
+    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
         if (err) throw err;
         console.log(result);
     });

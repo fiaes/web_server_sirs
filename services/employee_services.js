@@ -13,7 +13,7 @@ async function employees_list() {
 // Get a single employee
 async function get_employee(id) {
     let selectQuery = 'SELECT * FROM Employee WHERE id = ?';    
-    connection.query(selectQuery,[id], function (err, result, fields) {
+    connection.query(selectQuery,[id.params.id], function (err, result, fields) {
         if (err) throw err;
         console.log(result);
       });

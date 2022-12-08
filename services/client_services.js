@@ -11,9 +11,9 @@ async function clients_list() {
 }
 
 // Get a single client
-async function get_client(username) {
-    let selectQuery = 'SELECT * FROM Client WHERE username = ?';    
-    connection.query(selectQuery,[username], function (err, result, fields) {
+async function get_client(id) {
+    let selectQuery = 'SELECT * FROM Client WHERE id = ?';    
+    connection.query(selectQuery,[id.params.id], function (err, result, fields) {
         if (err) throw err;
         console.log(result);
       });
