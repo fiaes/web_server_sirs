@@ -1,3 +1,4 @@
+/*
 const express = require('express');
 const app = express();
 var createError = require('http-errors');
@@ -38,3 +39,29 @@ app.use(function(err, req, res, next) {
 });
 //connection.end();
 module.exports = app;
+*/
+
+const express = require("express");
+const app = express();
+const port = 3019;
+const programmingLanguagesRouter = require("./routes/programmingLanguages");
+app.use(express.json());
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
+);
+app.get("/", (req, res) => {
+    res.json({ message: "Connected!" });
+});
+app.use("/clients", programmingLanguagesRouter);
+/* Error handler middleware */
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    console.error(err.message, err.stack);
+    res.status(statusCode).json({ message: err.message });
+    return;
+});
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+});
