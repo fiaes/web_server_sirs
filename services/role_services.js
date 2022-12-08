@@ -3,7 +3,7 @@ const connection = require('./db');
 
 //Get all roles
 async function roles_list() {
-    let selectQuery = 'SELECT * FROM Rates';
+    let selectQuery = 'SELECT * FROM Role';
     connection.query(selectQuery, function(err, result, fields) {
         if (err) throw err;
         console.log(result);
@@ -12,7 +12,7 @@ async function roles_list() {
 
 // Get a single role
 async function get_role(id) {
-    let selectQuery = 'SELECT * FROM Rates WHERE id = ?';
+    let selectQuery = 'SELECT * FROM Role WHERE id = ?';
     connection.query(selectQuery, [id.params.id], function(err, result, fields) {
         if (err) throw err;
         console.log(result);
