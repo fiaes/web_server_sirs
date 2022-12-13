@@ -2,20 +2,22 @@ const { query } = require('express');
 const connection = require('./db');
 
 //Get all rates
-async function rates_list() {
+async function rates_list(res) {
     let selectQuery = 'SELECT * FROM Rates';
     connection.query(selectQuery, function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 
 // Get a single rate
-async function get_rate(id) {
+async function get_rate(req, res) {
     let selectQuery = 'SELECT * FROM Rates WHERE id = ?';
-    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
+    connection.query(selectQuery, [req.params.id], function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 

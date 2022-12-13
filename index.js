@@ -18,14 +18,17 @@ const connection = mysql.createConnection({
 connection.connect();
 //var cors = require("cors");
 //app.use(cors());
-app.listen(3080);
+const PORT = 3080;
+app.listen(PORT, () => {
+    console.log('server running at 3080');
+   });
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    next(createError(404));
+    res.status(404).send('Not found');
 });
 
 // error handler

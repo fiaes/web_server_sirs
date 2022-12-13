@@ -2,20 +2,22 @@ const { query } = require('express');
 const connection = require('./db');
 
 //Get all roles
-async function roles_list() {
+async function roles_list(res) {
     let selectQuery = 'SELECT * FROM Role';
     connection.query(selectQuery, function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 
 // Get a single role
-async function get_role(id) {
+async function get_role(req, res) {
     let selectQuery = 'SELECT * FROM Role WHERE id = ?';
-    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
+    connection.query(selectQuery, [req.params.id], function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 

@@ -2,20 +2,22 @@ const { query } = require('express');
 const connection = require('./db');
 
 //Get all appliances
-async function appliances_list() {
+async function appliances_list(res) {
     let selectQuery = 'SELECT * FROM Appliance';
     connection.query(selectQuery, function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 
 // Get a single appliance
-async function get_appliance(id) {
+async function get_appliance(req, res) {
     let selectQuery = 'SELECT * FROM Appliance WHERE id = ?';
-    connection.query(selectQuery, [id.params.id], function(err, result, fields) {
+    connection.query(selectQuery, [req.params.id], function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
     });
 }
 

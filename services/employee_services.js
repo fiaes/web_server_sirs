@@ -2,20 +2,22 @@ const { query } = require('express');
 const connection = require('./db');
 
 //Get all employees
-async function employees_list() {
+async function employees_list(res) {
     let selectQuery = 'SELECT * FROM Employee';    
     connection.query(selectQuery,function (err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
       });
 }
 
 // Get a single employee
-async function get_employee(id) {
+async function get_employee(req,res) {
     let selectQuery = 'SELECT * FROM Employee WHERE id = ?';    
-    connection.query(selectQuery,[id.params.id], function (err, result, fields) {
+    connection.query(selectQuery,[req.params.id], function (err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
       });
 }
 

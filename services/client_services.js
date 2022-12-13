@@ -2,20 +2,22 @@ const { query } = require('express');
 const connection = require('./db');
 
 //Get all clients
-async function clients_list() {
+async function clients_list(res) {
     let selectQuery = 'SELECT * FROM Client';    
     connection.query(selectQuery,function (err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
       });
 }
 
 // Get a single client
-async function get_client(id) {
+async function get_client(req, res) {
     let selectQuery = 'SELECT * FROM Client WHERE id = ?';    
-    connection.query(selectQuery,[id.params.id], function (err, result, fields) {
+    connection.query(selectQuery,[req.params.id], function (err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
       });
 }
 
