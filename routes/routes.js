@@ -9,6 +9,7 @@ var rate_service = require('../services/rate_services');
 var appliance_service = require('../services/appliance_services');
 var appliance_consumption_service = require('../services/appliance_consumption_services');
 var role_service = require('../services/role_services');
+var signup_service = require('../services/signup_services');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -91,5 +92,10 @@ router.get('/role/:id', (req, res) => {
 // POST request for creating a role
 router.post('/roles', role_service.create_role);
 //--------------------------------------------------------
+
+// POST request for creating a client
+router.post('/signup', (req, res) => {
+    signup_service.signup_client(req, res);
+});
 
 module.exports = router;
