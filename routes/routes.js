@@ -92,7 +92,6 @@ router.get('/role/:id', (req, res) => {
 // POST request for creating a role
 router.post('/roles', role_service.create_role);
 //--------------------------------------------------------
-
 // POST request for creating a client
 router.post('/signup', (req, res) => {
     signup_service.signup_client(req, res);
