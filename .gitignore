@@ -1,3 +1,5 @@
 node_modules
 certs
-package-lock.json
+certs/ca.pem
+certs/client-cert.pem
+certs/client-key.pem
