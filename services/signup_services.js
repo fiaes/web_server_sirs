@@ -2,7 +2,7 @@ const { query } = require('express');
 const connection = require('./db');
 const { SHA3 } = require('sha3');
 
-//Get all roles
+//Does the sign up of a new Client
 async function signup_client(req, res) {
     //Sanitizar os valores
     const username = req.body.username
