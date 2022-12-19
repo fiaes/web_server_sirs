@@ -3,7 +3,13 @@ const app = express();
 var createError = require('http-errors');
 var routes = require('./routes/routes');
 const connection = require('./services/db');
-connection.connect();
+
+
+
+
+
+
+//connection.connect();
 //var cors = require("cors");
 //app.use(cors());
 const PORT = 3080;
