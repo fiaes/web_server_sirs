@@ -3,10 +3,48 @@ const app = express();
 var createError = require('http-errors');
 var routes = require('./routes/routes');
 const connection = require('./services/db');
+var crypto = require('crypto');
+
+
+var fs = require('fs');
+
+var public_key = fs.readFileSync('./serverkeys/public.key');
+var private_key = fs.readFileSync('./serverkeys/server.key');
 
 
 
+// Generate Alice's keys...
+const alice = crypto.createDiffieHellman(1024);
+const aliceKey = alice.generateKeys();
 
+// Generate Bob's keys...
+const bob = crypto.createDiffieHellman(alice.getPrime(), alice.getGenerator());
+const bobKey = bob.generateKeys();
+
+// Exchange and generate the secret...
+const aliceSecret = alice.computeSecret(bobKey);
+const bobSecret = bob.computeSecret(aliceKey);
+
+// OK
+console.log(aliceSecret.toString('hex') == bobSecret.toString('hex'))
+
+
+const sign = crypto.createSign('SHA256');
+sign.write('some data to sign');
+sign.end();
+const signature = sign.sign(private_key, 'hex');
+
+const verify = crypto.createVerify('SHA256');
+verify.write('some data to sign');
+verify.end();
+console.log(verify.verify(public_key, signature, 'hex'));
+
+
+
+/*var buffer = Buffer.from("Ola123");
+var data_encrypted = crypto.privateEncrypt(private_key, buffer) 
+
+console.log(crypto.publicDecrypt(public_key, data_encrypted).toString('utf-8'))*/
 
 
 //connection.connect();
