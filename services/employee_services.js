@@ -1,5 +1,6 @@
 const { query } = require('express');
 const connection = require('./db');
+const utils = require('./utils');
 
 //Get all employees
 async function employees_list(res) {
@@ -13,6 +14,9 @@ async function employees_list(res) {
 
 // Get a single employee
 async function get_employee(req,res) {
+    if(isNaN(Number([req.params.id]))) {
+        return res.status(400).json({ err: "Numbers only, please!"})
+    }
     let selectQuery = 'SELECT * FROM Employee WHERE id = ?';    
     connection.query(selectQuery,[req.params.id], function (err, result, fields) {
         if (err) throw err;
@@ -23,8 +27,10 @@ async function get_employee(req,res) {
 
 // Create a Employee.
 async function create_employee(req, res, next) {
+    var params = [req.body.username, req.body.nome, req.body.password, req.body.roleID];
+    if(!utils.validate_input(params))
+        return res.status(400).json({ err: "Invalid input! (Only numbers, letters and space)"});
     var selectQuery = "INSERT INTO Employee (username, nome, password, roleID) VALUES (?, ?, ?, ?)";
-    var params = [req.body.username, req.body.nome, req.body.password, req.body.roleID]
     connection.query(selectQuery,params, function (err, result, fields) {
         if (err) throw err;
         console.log(result);

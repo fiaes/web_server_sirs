@@ -1,5 +1,6 @@
 const { query } = require('express');
 const connection = require('./db');
+const utils = require('./utils');
 
 //Get all appliances
 async function appliances_list(res) {
@@ -13,6 +14,9 @@ async function appliances_list(res) {
 
 // Get a single appliance
 async function get_appliance(req, res) {
+    if(isNaN(Number([req.params.id]))) {
+        return res.status(400).json({ err: "Numbers only, please!"})
+    }
     let selectQuery = 'SELECT * FROM Appliance WHERE id = ?';
     connection.query(selectQuery, [req.params.id], function(err, result, fields) {
         if (err) throw err;
@@ -23,8 +27,11 @@ async function get_appliance(req, res) {
 
 // Create a appliance.
 async function create_appliance(req, res, next) {
+    var params = [req.body.nome, req.body.maxConsumption, req.body.isProducing, req.body.contractID];
+    if(!utils.validate_input(params))
+        return res.status(400).json({ err: "Invalid input! (Only numbers, letters and space)"});
     var selectQuery = "INSERT INTO Appliance (nome,maxConsumption,isProducing,contractID) VALUES (?,?,?,?)";
-    var params = [req.body.nome, req.body.maxConsumption, req.body.isProducing, req.body.contractID]
+    
     connection.query(selectQuery, params, function(err, result, fields) {
         if (err) throw err;
         console.log(result);

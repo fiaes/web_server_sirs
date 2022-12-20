@@ -8,6 +8,7 @@ const config = {
         ca: fs.readFileSync(__dirname + '/certs/ca.pem'),
         key: fs.readFileSync(__dirname + '/certs/client-key.pem'),
         cert: fs.readFileSync(__dirname + '/certs/client-cert.pem')
-    }
+    },
+    multipleStatements: false
 };
 module.exports = config;

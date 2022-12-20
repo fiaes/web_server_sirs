@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { query } = require('express');
 const connection = require('./db');
+const utils = require('./utils');
 
 //Returns true if a session is valid
 async function is_session_valid(req, res) {
