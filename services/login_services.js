@@ -2,7 +2,7 @@ const { query } = require('express');
 const connection = require('./db');
 const { SHA3 } = require('sha3');
 
-//Get all roles
+
 async function login(req, res) {
 
     //Sanitizar os valores

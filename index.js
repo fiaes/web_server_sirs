@@ -15,7 +15,9 @@ const connection = mysql.createConnection({
         cert: fs.readFileSync(__dirname + '/certs/client-cert.pem')
     }
 });
-connection.connect();
+
+
+//connection.connect();
 //var cors = require("cors");
 //app.use(cors());
 const PORT = 3080;
@@ -39,5 +41,6 @@ app.use(function(err, req, res, next) {
     // render the error page
     res.status(err.status || 500);
 });
+
 //connection.end();
 module.exports = app;

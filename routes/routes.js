@@ -11,6 +11,9 @@ var appliance_consumption_service = require('../services/appliance_consumption_s
 var role_service = require('../services/role_services');
 var signup_service = require('../services/signup_services');
 var login_service = require('../services/login_services');
+var session_service = require('../services/session_services');
+var diffie_hellman_service = require('../services/diffie_hellman_service');
+const { route } = require('..');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -93,17 +96,22 @@ router.get('/role/:id', (req, res) => {
 // POST request for creating a role
 router.post('/roles', role_service.create_role);
 //--------------------------------------------------------
-
-// POST request for creating a client
+// POST request for Signing up a client
 router.post('/signup', (req, res) => {
     signup_service.signup_client(req, res);
 });
-
 //-------------------------------------------------------
-
-// POST request for creating a client
+// POST request for login a client
 router.post('/login', (req, res) => {
     login_service.login(req, res);
+});
+//POST request to verify the token of the session of a user
+router.post('/session', (req, res) => {
+    session_service.is_session_valid(req, res);
+});
+
+router.post('/diffie', (req, res) => {
+    diffie_hellman_service.get_user_information(req, res);
 });
 
 module.exports = router;
