@@ -12,11 +12,8 @@ var role_service = require('../services/role_services');
 var signup_service = require('../services/signup_services');
 var login_service = require('../services/login_services');
 var session_service = require('../services/session_services');
-<<<<<<< HEAD
 var diffie_hellman_service = require('../services/diffie_hellman_service');
 const { route } = require('..');
-=======
->>>>>>> dfd131d7df32a1c6f944f6a02e53e46902a7b07d
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

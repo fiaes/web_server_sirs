@@ -10,15 +10,52 @@ const private_key = fs.readFileSync('./serverkeys/server.key');
 const client_public_key = fs.readFileSync('./serverkeys/clientpublic.key');
 
 
+const urlDecodeBytes = (encoded) => {
+    let decoded = Buffer.from('')
+    for (let i = 0; i < encoded.length; i++) {
+      if (encoded[i] === '%') {
+        const charBuf = Buffer.from(`${encoded[i + 1]}${encoded[i + 2]}`, 'hex')
+        decoded = Buffer.concat([decoded, charBuf])
+        i += 2
+      } else {
+        const charBuf = Buffer.from(encoded[i])
+        decoded = Buffer.concat([decoded, charBuf])
+      }
+    }
+    return decoded
+}
+
+const urlEncodeBytes = (buf) => {
+    let encoded = ''
+    for (let i = 0; i < buf.length; i++) {
+      const charBuf = Buffer.from('00', 'hex')
+      charBuf.writeUInt8(buf[i])
+      const char = charBuf.toString()
+      // if the character is safe, then just print it, otherwise encode
+      if (isUrlSafe(char)) {
+        encoded += char
+      } else {
+        encoded += `%${charBuf.toString('hex').toUpperCase()}`
+      }
+    }
+    return encoded
+}
+
+const isUrlSafe = (char) => {
+    return /[a-zA-Z0-9\-_~.]+/.test(char)
+}
+
 async function get_user_information(req, res) {
+    console.log("Begin Request")
     
     const request = req.body
 
     //Sanitizar os valores
     const session = request.token;
-    const encrypted_payload = Buffer.from(request.payload);
-    const client_signature = Buffer.from(request.signature.data);
-    console.log(client_signature)
+    const encrypted_prime = Buffer.from(request.prime, 'hex');
+    const encrypted_generator = Buffer.from(request.generator, 'hex');
+    const encrypted_key = Buffer.from(request.key, 'hex');
+    const client_signature = Buffer.from(request.signature);
 
     
     const selectSession = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '" + session + "';";
@@ -41,44 +78,40 @@ async function get_user_information(req, res) {
 
                     // TEST À ASSINATURA:
                     const verify = crypto.createVerify('RSA-SHA256');
-                    verify.write(encrypted_payload.toString('utf-8'));
+                    verify.write(encrypted_prime);
                     verify.end();
-                    console.log(verify.verify(client_public_key  , client_signature));
+                    console.log(verify.verify(client_public_key, client_signature));
                     
-    //                 const verify = crypto.createVerify('SHA256');
-    //                 verify.write(encrypted_payload);
-    //                 verify.end();
+                    const user_prime = crypto.privateDecrypt(private_key, encrypted_prime);
+                    console.log(user_prime.toString('utf-8'))
+                    const user_generator = crypto.privateDecrypt(private_key, encrypted_generator);
+                    console.log(user_generator.toString('utf-8'))
+                    const key = crypto.privateDecrypt(private_key, encrypted_key);
+                    console.log(key.toString('utf-8'))
 
-    //                 //Authenticity
-    //                 if(verify.verify(client_public_key, client_signature, 'hex')){
-    //                     //Confidentiality
-    //                     const payload = crypto.privateDecrypt(private_key, encrypted_payload).toString('utf-8');
+                    //TODO: Perfect Forward Secrecy ver a função
+                    const server_diffie_hellman = crypto.createDiffieHellman(user_prime, user_generator);
+                    const serverkey = server_diffie_hellman.generateKeys();
 
-    //                     const user_prime = payload.prime;
-    //                     const user_generator = payload.generator;
-    //                     const alicekey = payload.key;
+                    //TODO: GUARDAR SESSÃO COM SESSIONKEY
+                    const sessionkey = server_diffie_hellman.computeSecret(key);
+                    console.log("sessionkey:")
+                    console.log(sessionkey)
+                        
+                    //Cypher com a public key do cliente para só ele poder dar decrypt
+                    const encrypted_response = crypto.publicEncrypt(client_public_key, serverkey);
+                        
+                    //É assinado o yb para enviar para Alice com a private key do bob para gerar authenticação
+                    const sign = crypto.createSign('RSA-SHA256');
+                    sign.write(encrypted_response);
+                    sign.end();
+                    const signature = sign.sign(private_key, 'hex');
 
-    //                     //TODO: Perfect Forward Secrecy ver a função
-    //                     const server_diffie_hellman = crypto.createDiffieHellman(user_prime, user_generator);
-    //                     const serverkey = server_diffie_hellman.generateKeys();
-                        
-    //                     //TODO: GUARDAR SESSÃO COM SESSIONKEY
-    //                     const sessionkey = bob.computeSecret(aliceKey);
-                        
-    //                     //Cypher com a public key do cliente para só ele poder dar decrypt
-    //                     const encrypted_response = crypto.publicEncrypt(client_public_key, serverkey);
-                        
-    //                     //É assinado o yb para enviar para Alice com a private key do bob para gerar authenticação
-    //                     const sign = crypto.createSign('SHA256');
-    //                     sign.write(encrypted_response.toString('utf-8'));
-    //                     sign.end();
-    //                     const signature = sign.sign(private_key, 'hex');
-
-    //                     res.send({
-    //                         serverkey: encrypted_response,
-    //                         signature: signature
-    //                     });
-                        
+                    res.send(JSON.stringify({
+                        serverkey: encrypted_response,
+                        signature: signature
+                    }));
+                    
     //                     /*
     //                     const payload_to_send = JSON.stringify({email: "fra*********@gmail.com", telefone: "910******"}); //Load from DB
 
