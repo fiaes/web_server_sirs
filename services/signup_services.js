@@ -8,8 +8,6 @@ async function signup_client(req, res) {
     //Sanitizar os valores
     const username = req.body.username
     const password = req.body.password
-    const publickey = req.body.publickey
-    const name = req.body.name
     const selectClient = "SELECT * FROM Client WHERE Client.username LIKE ?";
     
     connection.query(selectClient, req.body.username, function(err, result, fields) {

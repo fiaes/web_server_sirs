@@ -25,6 +25,23 @@ async function get_client(req, res) {
       });
 }
 
+//Get a client by his token
+async function get_client_by_token(req, res){
+    var params = [req.params.rnd_hash];
+    const selectSession = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE ?;";
+    connection.query(selectSession, params, function(err, result, fields) {
+        if (err) throw err;
+        if(result.length != 0){
+            const clientID = result[0].clientID;
+            const selectClient = "SELECT nome, morada FROM Client WHERE Client.id = ?";
+            connection.query(selectClient, clientID, function(err, result2, fields) {
+                if (err) throw err;
+                res.send(JSON.stringify(result2));
+            });
+        }
+    });
+}
+
 // Create a Client.
 async function create_client(req, res, next) {
     var params = [req.body.username, req.body.nome, req.body.password, req.body.morada];
@@ -41,5 +58,6 @@ async function create_client(req, res, next) {
 module.exports = {
     clients_list,
     get_client,
+    get_client_by_token,
     create_client
 }

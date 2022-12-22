@@ -27,6 +27,10 @@ router.get('/clients', (req, res) => {
 router.get('/client/:id', (req, res) => {
     client_service.get_client(req, res);
 });
+//GET request for a client by token
+router.get('/client/:rnd_hash', (req, res) => {
+    client_service.get_client_by_token(req, res);
+});
 // POST request for creating a client
 router.post('/clients', client_service.create_client);
 //---------------------------------------------------------
