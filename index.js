@@ -18,8 +18,8 @@ const connection = mysql.createConnection({
 
 
 connection.connect();
-//var cors = require("cors");
-//app.use(cors());
+const cors = require('cors');
+app.use(cors());
 const PORT = 3080; 
 app.listen(PORT, () => {
     console.log('server running at 3080');

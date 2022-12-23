@@ -28,7 +28,7 @@ router.get('/client/:id', (req, res) => {
     client_service.get_client(req, res);
 });
 //POST request for a client by token
-router.post('/clienttoken/:rnd_hash', (req, res) => {
+router.post('/clienttoken', (req, res) => {
     client_service.get_client_by_token(req, res);
 });
 // POST request for creating a client
@@ -76,7 +76,7 @@ router.get('/appliance/:id', (req, res) => {
     appliance_service.get_appliance(req,res);
 });
 //POST request for a appliance
-router.post('/appliancesclient/:clientID', (req, res) => {
+router.post('/appliancesclient', (req, res) => {
     appliance_service.get_client_appliances(req,res);
 });
 // POST request for creating a appliance
