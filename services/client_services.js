@@ -34,7 +34,7 @@ async function get_client_by_token(req, res){
         if (err) throw err;
         if(result.length != 0){
             const clientID = result[0].clientID;
-            const selectClient = "SELECT nome, morada FROM Client WHERE Client.id = ?";
+            const selectClient = "SELECT id,nome, morada FROM Client WHERE Client.id = ?";
             connection.query(selectClient, clientID, function(err, result2, fields) {
                 if (err) throw err;
                 res.send(JSON.stringify(result2));

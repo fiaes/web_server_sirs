@@ -20,7 +20,20 @@ async function get_appliance(req, res) {
     let selectQuery = 'SELECT * FROM Appliance WHERE id = ?';
     connection.query(selectQuery, [req.params.id], function(err, result, fields) {
         if (err) throw err;
-        console.log(JSON.stringify(result));
+        //console.log(JSON.stringify(result));
+        res.send(JSON.stringify(result));
+    });
+}
+
+// Get all appliances from client
+async function get_client_appliances(req, res) {
+    if(isNaN(Number([req.params.clientID]))) {
+        return res.status(400).json({ err: "Numbers only, please!"})
+    }
+    let selectQuery = 'SELECT id,nome,maxConsumption,isProducing FROM Appliance WHERE clientID = ?';
+    connection.query(selectQuery, [req.params.clientID], function(err, result, fields) {
+        if (err) throw err;
+        //console.log(JSON.stringify(result));
         res.send(JSON.stringify(result));
     });
 }
@@ -41,5 +54,6 @@ async function create_appliance(req, res, next) {
 module.exports = {
     appliances_list,
     get_appliance,
+    get_client_appliances,
     create_appliance
 }
