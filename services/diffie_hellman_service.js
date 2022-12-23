@@ -48,27 +48,25 @@ async function get_user_information(req, res) {
                     console.log(verify.verify(client_public_key, client_signature));
                     
                     const user_prime = crypto.privateDecrypt(private_key, encrypted_prime);
-                    console.log("user_prime")
-                    console.log(user_prime.toString('utf-8'))
                     const user_generator = crypto.privateDecrypt(private_key, encrypted_generator);
-                    console.log("user_generator")
-                    console.log(user_generator.toString('utf-8'))
                     const key = crypto.privateDecrypt(private_key, encrypted_key);
-                    //console.log(key.toString('utf-8'))
+                    console.log("Alice Key:")
+                    console.log(key.toString('hex'))
 
                     try {
                       //TODO: Perfect Forward Secrecy ver a função
                       //const server_diffie_hellman = crypto.createDiffieHellman(user_prime, user_generator);
                       const server_diffie_hellman = crypto.createDiffieHellman(user_prime, user_generator);
                       const serverkey = server_diffie_hellman.generateKeys();
+                      console.log("serverkey:")
+                      console.log(serverkey.toString('hex'))
 
                       //TODO: GUARDAR SESSÃO COM SESSIONKEY
                       const sessionkey = server_diffie_hellman.computeSecret(key);
                       console.log("sessionkey:")
-                      console.log(sessionkey.toString('utf-8'))
+                      console.log(sessionkey.toString('hex'))
                           
                       //Cypher com a public key do cliente para só ele poder dar decrypt
-                    
                       const encrypted_response = crypto.publicEncrypt(client_public_key, serverkey);
                       //É assinado o yb para enviar para Alice com a private key do bob para gerar authenticação
                       const sign = crypto.createSign('RSA-SHA256');
@@ -76,15 +74,24 @@ async function get_user_information(req, res) {
                       sign.end();
                       const signature = sign.sign(private_key, 'hex');
 
+                      //Enviar os dados confidenciais email, NIB etc.
                       res.send(JSON.stringify({
                           serverkey: encrypted_response,
                           signature: signature
                       }));
 
-                      
-
+                      //TODO como guardar a session key na base de dados (publicEncrypt com a public do servidor?)
+                      const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ sessionkey.toString('hex') +"', '"+ session +"', now())";
+                      connection.query(insert_keysession, function(err, result, fields) {
+                        if (err) throw err;
+                        console.log("Inserida com sucesso!");
+                      });
                     } catch (error) {
                       console.log(error)
+                      res.send(JSON.stringify({
+                          error: "Error creating session key"
+                      }));
+                      return {error: "error"}
                     }
                     
                         

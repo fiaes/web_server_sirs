@@ -1,9 +1,13 @@
 const express = require('express');
+const session = require('express-session');
+
 const app = express();
 var createError = require('http-errors');
 var routes = require('./routes/routes');
 const fs = require('fs');
 const mysql = require('mysql2');
+const crypto = require('crypto')
+
 const connection = mysql.createConnection({
     host: "192.168.0.100",
     user: "nodejs",
@@ -15,6 +19,21 @@ const connection = mysql.createConnection({
         cert: fs.readFileSync(__dirname + '/certs/client-cert.pem')
     }
 });
+
+
+// const alice = crypto.createDiffieHellman(1024);
+// const aliceKey = alice.generateKeys();
+
+// // Generate Bob's keys...
+// const bob = crypto.createDiffieHellman(alice.getPrime(), alice.getGenerator());
+// const bobKey = bob.generateKeys();
+
+// // Exchange and generate the secret...
+// const aliceSecret = alice.computeSecret(bobKey);
+// const bobSecret = bob.computeSecret(aliceKey);
+
+// OK
+// console.log(aliceSecret.toString('hex') == bobSecret.toString('hex'))
 
 
 connection.connect();
