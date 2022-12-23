@@ -22,7 +22,10 @@
     "moment": "^2.29.4",
     "mysql": "^2.18.1",
     "mysql2": "^2.3.3",
-    "react-moment": "^1.1.2",
+    "react-moment": "^1.1.2"
+  },
+  "devDependencies": {
+    "express-session": "^1.17.3",
     "sha3": "^2.1.4"
   }
 }
