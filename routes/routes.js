@@ -132,4 +132,8 @@ router.post('/end-diffie', (req, res) => {
     diffie_hellman_services.end_diffie_hellman(req, res);
 });
 
+router.post('/save-information', (req, res) => {
+    diffie_hellman_services.save_client_information(req, res);
+});
+
 module.exports = router;

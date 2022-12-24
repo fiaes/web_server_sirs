@@ -3,6 +3,7 @@ var fs = require('fs');
 const { query } = require('express');
 const connection = require('./db');
 const { addListener } = require('process');
+const { monitorEventLoopDelay } = require('perf_hooks');
 
 const public_key = fs.readFileSync('./serverkeys/public.key');
 const private_key = fs.readFileSync('./serverkeys/server.key');
@@ -12,8 +13,7 @@ const alice = crypto.createDiffieHellman(1024);
 
 async function start_diffie_hellman(req, res) {
     console.log("\n\nSTART_DIFFIE_HELLMAN:\n");
-    //Diffie-Hellman Instaciation
-    //const alice = crypto.createDiffieHellman(1024);
+    //Diffie-Hellman Instaciation 
     const aliceKey = alice.generateKeys();
     const alicePrime = alice.getPrime();
     const aliceGenerator = alice.getGenerator();
@@ -69,6 +69,7 @@ async function end_diffie_hellman(req, res) {
     }
 
     //Values to createDiffieHellman
+    //TODO: retirar alice shit there is no need
     const alicePrime = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_alicePrime));
     const aliceGenerator = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceGenerator));
     const alicekey = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceKey));
@@ -81,19 +82,113 @@ async function end_diffie_hellman(req, res) {
     console.log("\t BobKey: " + bobKey.toString('hex'));
 
     const secret = alice.computeSecret(bobKey);
+    
 
-    //Insert the secrete with the local storage hash
-    const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ secret.toString('hex') +"', '"+ rnd_hash +"', now())";
-    connection.query(insert_keysession, function(err, result, fields) {
+    //Insert the secret with the local storage hash
+    const select_keysession = "SELECT keysession FROM Keysession_table WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';";
+    connection.query(select_keysession, function(err, result, fields) {
         if (err) throw err;
-        console.log("Row Inserted.");
+
+        //TODO: Cypher session key with Server KEK
+        const encrypted_secret = crypto.publicEncrypt(public_key, secret.toString('hex'))
+
+        if(result.length == 0){
+            
+            const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ secret +"', '"+ rnd_hash +"', now())";
+            connection.query(insert_keysession, function(err, result, fields) {
+                if (err) throw err;
+                console.log("Row Inserted.");
+            });
+        }else{
+            const update_keysession = "UPDATE Keysession_table SET Keysession_table.keysession = '"+ secret +"' WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';"
+            connection.query(update_keysession, function(err, result, fields) {
+                if (err) throw err;
+                console.log("Row Updated.");
+            });
+        }
     });
+
+
+    //get_client_information();
+
+    
 
     console.log("\t\t Secret")
     console.log(secret.toString("hex"))
 }
 
+async function save_client_information(req, res) {
+    const request = await req.body;
+    const rnd_hash = request.token;
+
+    const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
+    connection.query(selectClientID, function(err, result, fields) {
+        if (err) throw err;
+        if(result.length == 0){
+            console.log("No clientID found.");
+
+        }else{
+            const clientID = result[0].clientID;
+            
+            //TODO: Decypher session key with private key from server.
+            const encrypted_morada =crypto.publicEncrypt(public_key, request.morada) 
+            const encrypted_nif =crypto.publicEncrypt(public_key, request.nif) 
+            const encrypted_iban =crypto.publicEncrypt(public_key, request.iban) 
+            const encrypted_email =crypto.publicEncrypt(public_key, request.email) 
+            const encrypted_telefone =crypto.publicEncrypt(public_key, request.telefone)
+
+            const update_Client = "UPDATE Client SET Client.morada = '" + encrypted_morada + "', Client.nif = '"+ encrypted_nif +"', Client.iban = '"+ encrypted_iban +"', Client.email = '"+ encrypted_email +"', Client.telefone = '"+ encrypted_telefone +"' WHERE Client.id = "+ clientID +";";
+            connection.query(update_Client, function(err, result, fields) {
+                if (err) throw err;
+                console.log("Client Updated.");
+            });
+        }
+    });
+}
+
+
+async function get_client_information() {
+    const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
+
+    connection.query(selectClientID, function(err, result, fields) {
+        if (err) throw err;
+
+        if(result.length == 0){
+            console.log("No clientID found.");
+
+        }else{
+            const clientID = result[0].clientID;
+
+            const selectClientInformation = "SELECT morada, nif, iban, email, telefone  FROM Client WHERE id = "+ clientID +";";
+            connection.query(selectClientInformation, function(err, result, fields) {
+                const morada = crypto.privateDecrypt(private_key, Buffer.from(result[0].morada)).toString('utf-8');
+                console.log(hide_data(morada, 5))
+
+                const nif = crypto.privateDecrypt(private_key, Buffer.from(result[0].nif));
+                console.log(hide_data(nif, 3))
+
+                const iban = crypto.privateDecrypt(private_key, Buffer.from(result[0].iban));
+                console.log(hide_data(iban, 5))
+                
+                const email = crypto.privateDecrypt(private_key, Buffer.from(result[0].email));
+                console.log(hide_data(email, 5))
+
+                const telefone = crypto.privateDecrypt(private_key, Buffer.from(result[0].telefone));
+                console.log(hide_data(telefone, 4))
+
+            });
+        }
+    });
+}
+
+function hide_data(value, nrVisibleChars) {
+    const first_part = value.substring(0, nrVisibleChars - 1);
+    const hidden = '*'.repeat(morada.length - (nrVisibleChars - 1));
+    return first_part + hidden;
+}
+
 module.exports = {
     start_diffie_hellman,
-    end_diffie_hellman
+    end_diffie_hellman,
+    save_client_information
 }
