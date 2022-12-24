@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 certs
 certs/ca.pem
 certs/client-cert.pem

@@ -1,12 +1,15 @@
 const express = require('express');
+
 const app = express();
 var createError = require('http-errors');
 var routes = require('./routes/routes');
 const fs = require('fs');
 const mysql = require('mysql2');
+const crypto = require('crypto')
+
 const connection = mysql.createConnection({
     host: "192.168.0.100",
-    user: "nodejs",
+    user: "nodejs2",
     password: "password",
     database: "remotedb",
     ssl: {
@@ -17,9 +20,24 @@ const connection = mysql.createConnection({
 });
 
 
+// const alice = crypto.createDiffieHellman(1024);
+// const aliceKey = alice.generateKeys();
+
+// // Generate Bob's keys...
+// const bob = crypto.createDiffieHellman(alice.getPrime(), alice.getGenerator());
+// const bobKey = bob.generateKeys();
+
+// // Exchange and generate the secret...
+// const aliceSecret = alice.computeSecret(bobKey);
+// const bobSecret = bob.computeSecret(aliceKey);
+
+// OK
+// console.log(aliceSecret.toString('hex') == bobSecret.toString('hex'))
+
+
 connection.connect();
-//var cors = require("cors");
-//app.use(cors());
+const cors = require('cors');
+app.use(cors());
 const PORT = 3080; 
 app.listen(PORT, () => {
     console.log('server running at 3080');
