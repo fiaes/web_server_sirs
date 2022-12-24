@@ -1,5 +1,4 @@
 const express = require('express');
-const session = require('express-session');
 
 const app = express();
 var createError = require('http-errors');
@@ -10,7 +9,7 @@ const crypto = require('crypto')
 
 const connection = mysql.createConnection({
     host: "192.168.0.100",
-    user: "nodejs",
+    user: "nodejs2",
     password: "password",
     database: "remotedb",
     ssl: {

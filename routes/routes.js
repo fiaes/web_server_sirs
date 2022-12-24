@@ -13,6 +13,7 @@ var signup_service = require('../services/signup_services');
 var login_service = require('../services/login_services');
 var session_service = require('../services/session_services');
 var diffie_hellman_service = require('../services/diffie_hellman_service');
+var diffie_hellman_services = require('../services/diffie_hellman_services');
 const { route } = require('..');
 
 /* GET home page. */
@@ -120,6 +121,15 @@ router.post('/session', (req, res) => {
 
 router.post('/diffie', (req, res) => {
     diffie_hellman_service.get_user_information(req, res);
+});
+
+
+router.post('/start-diffie', (req, res) => {
+    diffie_hellman_services.start_diffie_hellman(req, res);
+});
+
+router.post('/end-diffie', (req, res) => {
+    diffie_hellman_services.end_diffie_hellman(req, res);
 });
 
 module.exports = router;
