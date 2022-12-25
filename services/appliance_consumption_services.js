@@ -29,7 +29,7 @@ async function calculate_invoices(req, res) {
     // Initialize invoices variable
     let invoices = 0;
     // Get clientID from the Session_table
-    var params = [req.params.rnd_hash];
+    var params = [req.body.rnd_hash];
     const selectSession = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE ?;";
     const result_client = await new Promise((resolve, reject) => {
         connection.query(selectSession, params, (err, result) => {

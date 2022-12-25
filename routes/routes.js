@@ -92,7 +92,7 @@ router.get('/consumption/:id', (req, res) => {
     appliance_consumption_service.get_consumption(req, res);
 });
 //GET request for the client's invoices
-router.get('/invoices/:rnd_hash', (req, res) => {
+router.post('/invoices', (req, res) => {
     appliance_consumption_service.calculate_invoices(req, res);
 });
 // POST request for creating a appliance_consumption
