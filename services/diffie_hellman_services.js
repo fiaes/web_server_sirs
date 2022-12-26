@@ -9,7 +9,8 @@ const public_key = fs.readFileSync('./serverkeys/public.key');
 const private_key = fs.readFileSync('./serverkeys/server.key');
 const client_public_key = fs.readFileSync('./serverkeys/clientpublic.key');
 
-const alice = crypto.createDiffieHellman(1024);
+const alice = crypto.createDiffieHellman(2048);
+let secret = "";
 
 async function start_diffie_hellman(req, res) {
     console.log("\n\nSTART_DIFFIE_HELLMAN:\n");
@@ -81,16 +82,18 @@ async function end_diffie_hellman(req, res) {
     console.log("\t AliceKey: " + alicekey.toString('hex'));
     console.log("\t BobKey: " + bobKey.toString('hex'));
 
-    const secret = alice.computeSecret(bobKey);
+    secret = alice.computeSecret(bobKey);
     
 
-    //Insert the secret with the local storage hash
+    //Insert || Update the secret with the local storage hash
     const select_keysession = "SELECT keysession FROM Keysession_table WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';";
     connection.query(select_keysession, function(err, result, fields) {
         if (err) throw err;
 
         //TODO: Cypher session key with Server KEK
-        const encrypted_secret = crypto.publicEncrypt(public_key, secret.toString('hex'))
+        //const encrypted_secret = crypto.publicEncrypt(public_key, secret.toString('hex'))
+        console.log(cypher_data(secret.toString('hex'), 'hex', secret))
+
 
         if(result.length == 0){
             
@@ -109,12 +112,25 @@ async function end_diffie_hellman(req, res) {
     });
 
 
-    //get_client_information();
-
-    
+    const information = get_client_information(rnd_hash);
+    res.send(JSON.stringify(information));
 
     console.log("\t\t Secret")
     console.log(secret.toString("hex"))
+}
+
+async function cypher_data(data, inputEncoding, secret_passed){
+    const algorithm = 'aes-192-cbc';
+
+    crypto.randomFill(new Uint8Array(16), (err, iv) => {
+        if (err) throw err;
+    
+        const cipher = crypto.createCipheriv(algorithm, secret_passed, iv);
+    
+        let encrypted = cipher.update(data, inputEncoding, 'hex');
+        encrypted += cipher.final('hex');
+        return {encrypted_data: encrypted, iv: iv}
+    });
 }
 
 async function save_client_information(req, res) {
@@ -147,7 +163,7 @@ async function save_client_information(req, res) {
 }
 
 
-async function get_client_information() {
+async function get_client_information(rnd_hash) {
     const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
 
     connection.query(selectClientID, function(err, result, fields) {
@@ -176,6 +192,7 @@ async function get_client_information() {
                 const telefone = crypto.privateDecrypt(private_key, Buffer.from(result[0].telefone));
                 console.log(hide_data(telefone, 4))
 
+                return {morada: morada, nif: nif, iban: iban, email: email, telefone: telefone}
             });
         }
     });
