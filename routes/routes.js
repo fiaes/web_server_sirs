@@ -50,9 +50,13 @@ router.post('/employees', employee_service.create_employee);
 router.get('/contracts', (req, res) => {
     contract_service.contracts_list(res);
 });
-//GET request for a contract
+//GET request for a contract contractstoken
 router.get('/contract/:id', (req, res) => {
     contract_service.get_contract(req,res);
+});
+//POST request for a contract contractstoken
+router.post('/contractstoken', (req, res) => {
+    contract_service.get_contract_token(req,res);
 });
 // POST request for creating a contract
 router.post('/contracts', contract_service.create_contract);
@@ -90,6 +94,10 @@ router.get('/consumptions', (req, res) => {
 //GET request for a appliance_consumption
 router.get('/consumption/:id', (req, res) => {
     appliance_consumption_service.get_consumption(req, res);
+});
+//POST request for a appliance_consumption
+router.post('/consumptionstoken', (req, res) => {
+    appliance_consumption_service.get_consumption_token(req, res);
 });
 //GET request for the client's invoices
 router.post('/invoices', (req, res) => {

@@ -30,7 +30,7 @@ async function get_client_appliances(req, res) {
     if(isNaN(Number([req.body.clientID]))) {
         return res.status(400).json({ err: "Numbers only, please!"})
     }
-    let selectQuery = 'SELECT id,nome,maxConsumption,isProducing FROM Appliance WHERE clientID = ?';
+    let selectQuery = 'SELECT id,nome,maxConsumption,isProducing,contractID FROM Appliance WHERE clientID = ?';
     connection.query(selectQuery, [req.body.clientID], function(err, result, fields) {
         if (err) throw err;
         //console.log(JSON.stringify(result));
