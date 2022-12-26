@@ -27,7 +27,6 @@ async function get_client(req, res) {
 
 //Get a client by his token
 async function get_client_by_token(req, res){
-    console.log("GET_CLIENT_BY_TOKEN");
     var params = [req.body.rnd_hash];
     const selectSession = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE ?;";
     connection.query(selectSession, params, function(err, result, fields) {
@@ -37,7 +36,6 @@ async function get_client_by_token(req, res){
             const selectClient = "SELECT id,nome FROM Client WHERE Client.id = ?";
             connection.query(selectClient, clientID, function(err, result2, fields) {
                 if (err) throw err;
-                console.log("Encontrei: " + JSON.stringify(result2));
                 res.send(JSON.stringify(result2));
             });
         }

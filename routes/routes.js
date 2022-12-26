@@ -91,6 +91,10 @@ router.get('/consumptions', (req, res) => {
 router.get('/consumption/:id', (req, res) => {
     appliance_consumption_service.get_consumption(req, res);
 });
+//GET request for the client's invoices
+router.post('/invoices', (req, res) => {
+    appliance_consumption_service.calculate_invoices(req, res);
+});
 // POST request for creating a appliance_consumption
 router.post('/consumptions', appliance_consumption_service.create_consumption);
 //--------------------------------------------------------

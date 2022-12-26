@@ -27,7 +27,6 @@ async function get_appliance(req, res) {
 
 // Get all appliances from client
 async function get_client_appliances(req, res) {
-    console.log("GET_CLIENT_APPLIANCES");
     if(isNaN(Number([req.body.clientID]))) {
         return res.status(400).json({ err: "Numbers only, please!"})
     }
