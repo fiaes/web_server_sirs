@@ -72,7 +72,7 @@ async function end_diffie_hellman(req, res) {
     }
 
     //Values to createDiffieHellman
-    //TODO: retirar alice shit there is no need
+    //TODO: retirar alice things there is no need
     const alicePrime = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_alicePrime));
     const aliceGenerator = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceGenerator));
     const alicekey = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceKey));
