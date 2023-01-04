@@ -61,13 +61,7 @@ async function calculate_invoices(req, res) {
                         resolve(result);
                     });
                 });
-                if(result_consumptions.length!=0){
-                    result_consumptions.forEach(consumption => {
-                        sumConsumptions += consumption.consumption;
-                    });
-                }
-                invoices += sumConsumptions * 5;
-                /* // Get contract for the appliance
+                // Get contract for the appliance
                 let select_contract = 'SELECT * FROM Contract WHERE id = ?;';
                 const result_contract = await new Promise((resolve, reject) => {
                     connection.query(select_contract, contractID, (err, result) => {
@@ -77,16 +71,58 @@ async function calculate_invoices(req, res) {
                 });
                 if(result_contract.length != 0){
                     const contract_type = result_contract[0].tipo;
-
                     // Calculate the invoices for the appliance
                     if(contract_type == "Bi-Hour Rate"){
-                        invoices += sumConsumptions * contract_type;
+                        let select_rates = 'SELECT * FROM Bi_Hour_Rate WHERE contractID = ?;';
+                        const result_rates = await new Promise((resolve, reject) => {
+                            connection.query(select_rates, contractID, (err, result) => {
+                                if (err) return reject(err);
+                                resolve(result);
+                            });
+                        });
+                        if(result_rates.length!=0){
+                            const rate1 = result_rates[0].rate1;
+                            const rate2 = result_rates[0].rate2;
+                            const init_period = result_rates[0].initial;
+                            const finish_periodo = result_rates[0].finish;
+                            if(result_consumptions.length!=0){
+                                result_consumptions.forEach(consumption => {
+                                    const consumption_ts = consumption.ts;
+                                    const initial = JSON.stringify(init_period).split('T')[1].slice(0,-6);
+                                    const finish = JSON.stringify(finish_periodo).split('T')[1].slice(0,-6);
+                                    const consumption_date = new Date();
+                                    consumption_date.setHours(consumption_ts.getHours(),consumption_ts.getMinutes(), consumption_ts.getSeconds());
+                                    const initial_values = initial.split(":");
+                                    const startPeriod = new Date();
+                                    startPeriod.setHours(initial_values[0]-5, initial_values[1],initial_values[2]);
+                                    const finish_values = finish.split(":");
+                                    const finishPeriod = new Date();
+                                    finishPeriod.setHours(finish_values[0]-5, finish_values[1], finish_values[2]);
+                                    if(consumption_date >= startPeriod && consumption_ts < finishPeriod ){
+                                        invoices += consumption.consumption * rate2;
+                                    }else{
+                                        invoices += consumption.consumption * rate1;
+                                    }
+                                });
+                            }
+                        }
                     } else {
-                        invoices += sumConsumptions * 5;
+                        let select_rates = 'SELECT * FROM Flat_Rate WHERE contractID = ?;';
+                        const result_rates = await new Promise((resolve, reject) => {
+                            connection.query(select_rates, contractID, (err, result) => {
+                                if (err) return reject(err);
+                                resolve(result);
+                            });
+                        });
+                        if(result_rates.length != 0){
+                            const rate = result_rates[0].rate;
+                            result_consumptions.forEach(consumption => {
+                                invoices += consumption.consumption * rate;
+                            });
+                        }
                     }
-                } */
+                }
             }
-
             // Send the invoices back to the client
             console.log("Invoices: " + invoices);
             res.send(JSON.stringify(invoices));
@@ -94,7 +130,39 @@ async function calculate_invoices(req, res) {
     }
 }
 
-
+//GET all clients consumptions 
+async function get_consumption_token(req, res) {
+    var params = [req.body.rnd_hash];
+    const selectSession = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE ?;";
+    const result_client = await new Promise((resolve, reject) => {
+        connection.query(selectSession, params, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+    const clientID = result_client[0].clientID;
+    let selectQuery = 'SELECT * FROM Appliance WHERE clientID = ?';
+    const result_appliances = await new Promise((resolve, reject) => {
+        connection.query(selectQuery, clientID, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+    if(result_appliances.length != 0){
+        const res_consumptions = [];
+        await Promise.all(result_appliances.map(async appliance => {
+            let select_consumptions = 'SELECT * FROM Appliance_consumption WHERE applianceID = ?;';  
+            return new Promise((resolve, reject) => {
+                connection.query(select_consumptions, appliance.id, function (err, result, fields) {
+                    if (err) reject(err);
+                    res_consumptions.push(result);
+                    resolve();
+                });
+            });
+        }));
+        res.send(JSON.stringify(res_consumptions));
+    }
+}
 
 // Create a appliance_consumption.
 async function create_consumption(req, res, next) {
@@ -112,5 +180,6 @@ module.exports = {
     consumptions_list,
     get_consumption,
     calculate_invoices,
+    get_consumption_token,
     create_consumption
 }
