@@ -26,16 +26,21 @@ async function start_diffie_hellman(req, res) {
     console.log("\t AlicePrime: " + alicePrime.toString('hex'));
     console.log("\t AliceGenerator: " + aliceGenerator.toString('hex'));
 
+    const now = new Date().getTime().toString()
+    console.log("\t TimeStamp: " + now);
     //Preparing values to be sent signed by client's public key
     const encrypted_aliceKey = crypto.publicEncrypt(client_public_key, aliceKey);
     const encrypted_alicePrime = crypto.publicEncrypt(client_public_key, alicePrime);
     const encrypted_aliceGenerator = crypto.publicEncrypt(client_public_key, aliceGenerator);
+    const encrypted_timestamp = crypto.publicEncrypt(client_public_key, Buffer.from(now));
+    
 
     //Signing values to be sent
     const sign = crypto.createSign('RSA-SHA256');
     sign.write(encrypted_aliceKey);
     sign.write(encrypted_alicePrime);
     sign.write(encrypted_aliceGenerator);
+    sign.write(encrypted_timestamp)
     sign.end();
     const signature = await sign.sign(private_key);
 
@@ -43,6 +48,7 @@ async function start_diffie_hellman(req, res) {
         encrypted_aliceKey: encrypted_aliceKey,
         encrypted_alicePrime: encrypted_alicePrime,
         encrypted_aliceGenerator: encrypted_aliceGenerator,
+        encrypted_timestamp: encrypted_timestamp,
         signature: signature
     }));
 }
@@ -88,27 +94,27 @@ async function end_diffie_hellman(req, res) {
     
 
     //Insert || Update the secret with the local storage hash
-    const select_keysession = "SELECT keysession FROM Keysession_table WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';";
-    connection.query(select_keysession, async function(err, result, fields) {
-        if (err) throw err;
+    // const select_keysession = "SELECT keysession FROM Keysession_table WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';";
+    // connection.query(select_keysession, async function(err, result, fields) {
+    //     if (err) throw err;
 
-        //TODO: Cypher session key with Server KEK
+    //     //TODO: Cypher session key with Server KEK
 
-        if(result.length == 0){
+    //     if(result.length == 0){
             
-            const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ secret.toString('hex') +"', '"+ rnd_hash +"', now())";
-            connection.query(insert_keysession, function(err, result, fields) {
-                if (err) throw err;
-                console.log("Row Inserted.");
-            });
-        }else{
-            const update_keysession = "UPDATE Keysession_table SET Keysession_table.keysession = '"+ secret.toString('hex') +"' WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';"
-            connection.query(update_keysession, function(err, result, fields) {
-                if (err) throw err;
-                console.log("Row Updated.");
-            });
-        }
-    });
+    //         const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ secret.toString('hex') +"', '"+ rnd_hash +"', now())";
+    //         connection.query(insert_keysession, function(err, result, fields) {
+    //             if (err) throw err;
+    //             console.log("Row Inserted.");
+    //         });
+    //     }else{
+    //         const update_keysession = "UPDATE Keysession_table SET Keysession_table.keysession = '"+ secret.toString('hex') +"' WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';"
+    //         connection.query(update_keysession, function(err, result, fields) {
+    //             if (err) throw err;
+    //             console.log("Row Updated.");
+    //         });
+    //     }
+    // });
 
     const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
     connection.query(selectClientID, function(err, result, fields) {
@@ -200,6 +206,11 @@ async function cypher_data(data, inputEncoding, outputEncoding, secret_passed){
     return encrypted;
 }
 
+function addHours(date, hours) {
+    date.setHours(date.getHours() + hours);
+    return date;
+}
+
 async function save_client_information(req, res) {
     const request = await req.body;
     const rnd_hash = request.token;
@@ -210,8 +221,9 @@ async function save_client_information(req, res) {
         console.log("rnd_hash")
         console.log(rnd_hash)
 
-        //TODO: Testar a timestamp da session key
 
+
+        
         if(result.length == 0){
             console.log("No clientID found, in save_client_information.");
 
@@ -241,7 +253,7 @@ async function save_client_information(req, res) {
             });
 
             res.send(JSON.stringify({success: "Critical data Updated."}));
-        }
+        }        
     });
 }
 
