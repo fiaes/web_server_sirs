@@ -6,14 +6,46 @@ const { addListener } = require('process');
 const { monitorEventLoopDelay } = require('perf_hooks');
 const { type } = require('os');
 
-const public_key = fs.readFileSync('./serverkeys/public.key');
+
 const private_key = fs.readFileSync('./serverkeys/server.key');
-const client_public_key = fs.readFileSync('./serverkeys/clientpublic.key');
+//const client_public_key = fs.readFileSync('./serverkeys/clientpublic.key');
+const certificate = fs.readFileSync('./serverkeys/server.crt')
 
 let alice;// = crypto.createDiffieHellman(2048);
 let secret = "";
 
 async function start_diffie_hellman(req, res) {
+
+    //Verification of the Certificate:
+    const request = await req.body;
+    const client_x509 = new crypto.X509Certificate(request.certificate);
+
+    // Verification of: 
+    // the subject CN=Frontend\n; 
+    // the issuer CN=backend server\n; 
+    // and if the time frame is valid.
+    console.log("Certificate:")
+    console.log(client_x509)
+    const validFrom = new Date(client_x509.validFrom)
+    const validTo = new Date(client_x509.validTo)
+    const validNow = new Date()
+
+    if (client_x509.subject.split("\n")[5].split("=")[1] != "Frontend"){
+        console.log("The Subject is not the Frontend.")
+        return
+    }
+    if (client_x509.issuer.split("\n")[5].split("=")[1] != "backend server"){
+        console.log("The issuer of the certificate is not the Backend.")
+        return
+    }
+    if (!(validNow >= validFrom && validNow <= validTo)){
+        console.log("The certificate is not valid.")
+        return
+    }
+
+    client_public_key = client_x509.publicKey
+        
+
     console.log("\n\nSTART_DIFFIE_HELLMAN:\n");
     //Diffie-Hellman Instaciation 
     alice = crypto.createDiffieHellman(1024);
@@ -49,6 +81,7 @@ async function start_diffie_hellman(req, res) {
         encrypted_alicePrime: encrypted_alicePrime,
         encrypted_aliceGenerator: encrypted_aliceGenerator,
         encrypted_timestamp: encrypted_timestamp,
+        certificate: certificate,
         signature: signature
     }));
 }
