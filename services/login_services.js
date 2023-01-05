@@ -1,30 +1,40 @@
 const { query } = require('express');
 const connection = require('./db');
 const { SHA3 } = require('sha3');
-
+const crypto = require('crypto');
 
 async function login(req, res) {
 
-    const password = req.body.password
-    const hash = new SHA3(512);
-    hash.update(password);
-    const hashpassword = hash.digest('hex');
-    
-    var params = [req.body.username, hashpassword];
-    const selectClient = "SELECT * FROM Client WHERE Client.username LIKE ? AND Client.password LIKE ? ;";
+    var params = [req.body.username];
+    const selectClient = "SELECT * FROM Client WHERE Client.username LIKE ?;";
     connection.query(selectClient, params, function(err, result, fields) {
         if (err) throw err;
 
-        if(result.length == 0){
+        
+        //creating hash object 
+        var hash = crypto.createHash('sha512');
+        //passing the data to be hashed
+        const salt = result[0].salt
+        data = hash.update(salt + req.body.password, 'utf-8');
+        //Creating the hash in the required format
+        const hashpassword= data.digest('hex');
+
+        if(result[0].password != salt + hashpassword){
             res.send(JSON.stringify({error: "Username/Password are wrong."}));
             return
         }
 
+
         const userId = result[0].id;
 
-        const hashSession = new SHA3(512);
-        hashSession.update(Date.now().toString());
-        const hashToAdd = hashSession.digest('hex');
+        //creating hash object 
+        var hash = crypto.createHash('sha512');
+        //passing the data to be hashed
+        data1 = hash.update(Date.now().toString(), 'utf-8');
+        //Creating the hash in the required format
+        const hashToAdd= data1.digest('hex');
+
+
 
         //VÊ SE JÁ EXISTE UMA SESSION DE UM USER
         const selectSession = "SELECT id FROM Session_table WHERE clientID = ?;";
@@ -33,8 +43,8 @@ async function login(req, res) {
             //DAR UPDATE A SESSION
             if(result.length != 0){
                 const sessionId = result[0].id;
-                const updateSession = "UPDATE Session_table SET ts=now(),rnd_hash= ? WHERE ?;";
-                connection.query(updateSession, [hashToAdd, sessionId], function(err, result, fields) {
+                const updateSession = "UPDATE Session_table SET ts=now(),rnd_hash= '"+ hashToAdd +"' WHERE clientID = "+ userId +";";
+                connection.query(updateSession, function(err, result, fields) {
                     res.send({
                         token: hashToAdd
                     });

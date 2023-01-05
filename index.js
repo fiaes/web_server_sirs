@@ -7,17 +7,17 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const crypto = require('crypto')
 
-const connection = mysql.createConnection({
-    host: "192.168.0.100",
-    user: "nodejs2",
-    password: "password",
-    database: "remotedb",
-    ssl: {
-        ca: fs.readFileSync(__dirname + '/certs/ca.pem'),
-        key: fs.readFileSync(__dirname + '/certs/client-key.pem'),
-        cert: fs.readFileSync(__dirname + '/certs/client-cert.pem')
-    }
-});
+// const connection = mysql.createConnection({
+//     host: "192.168.0.100",
+//     user: "nodejs2",
+//     password: "password",
+//     database: "remotedb",
+//     ssl: {
+//         ca: fs.readFileSync(__dirname + '/certs/ca.pem'),
+//         key: fs.readFileSync(__dirname + '/certs/client-key.pem'),
+//         cert: fs.readFileSync(__dirname + '/certs/client-cert.pem')
+//     }
+// });
 
 
 // const alice = crypto.createDiffieHellman(1024);
@@ -35,7 +35,7 @@ const connection = mysql.createConnection({
 // console.log(aliceSecret.toString('hex') == bobSecret.toString('hex'))
 
 
-connection.connect();
+//connection.connect();
 const cors = require('cors');
 app.use(cors());
 const PORT = 3080; 

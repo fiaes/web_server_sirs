@@ -1,6 +1,6 @@
 const { query } = require('express');
 const connection = require('./db');
-const { SHA3 } = require('sha3');
+const crypto = require('crypto');
 const utils = require('./utils');
 
 //Does the sign up of a new Client
@@ -16,11 +16,21 @@ async function signup_client(req, res) {
             res.send(JSON.stringify({error: "Username already exits"}));
             return
         }
-        const hash = new SHA3(512);
-        hash.update(password);
-        const hashpassword = hash.digest('hex');
-        const insertClient = "INSERT INTO Client (username, password, publickey, nome) VALUES (?,?,?,?);";
-        const params = [req.body.username, hashpassword, req.body.publickey, req.body.name];
+
+        //creating hash object 
+        var hash = crypto.createHash('sha512');
+        //passing the data to be hashed
+        const salt = crypto.randomBytes(8).toString('hex');
+        console.log(salt)
+
+        data = hash.update(salt + password, 'utf-8');
+        //Creating the hash in the required format
+        const hashpassword= data.digest('hex');
+
+        
+
+        const insertClient = "INSERT INTO Client (username, password, nome, salt) VALUES (?,?,?,?);";
+        const params = [req.body.username, salt + hashpassword, req.body.name, salt];
         connection.query(insertClient, params, function(err, result, fields) {
             if (err) throw err;
             if(result.affectedRows != 0)

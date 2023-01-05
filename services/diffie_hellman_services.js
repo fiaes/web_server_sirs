@@ -123,42 +123,52 @@ async function end_diffie_hellman(req, res) {
             const selectClientInformation = "SELECT morada, nif, iban, email, telefone  FROM Client WHERE id = "+ clientID +";";
             connection.query(selectClientInformation, async function(err, result, fields) {
 
+                if (err) throw err;
+
                 let morada = "";
                 let nif = "";
                 let iban = "";
                 let email = "";
                 let telefone = "";
 
+                console.log(result[0])
+
                 if(result[0].morada !== null){
                     morada = await decypher_data(result[0].morada, 'hex', 'utf-8', private_key)
-                    morada = hide_data(morada, 5);
+                    if (morada.length > 0)
+                        morada = hide_data(morada, 5);
                     morada = await cypher_data(morada, 'utf-8', 'hex', secret)
+                    
                 }
         
                 if(result[0].nif !== null){
                     nif = await decypher_data(result[0].nif, 'hex', 'utf-8', private_key)
-                    nif = hide_data(nif, 3);
+                    if (nif.length > 0)
+                        nif = hide_data(nif, 5);
                     nif = await cypher_data(nif, 'utf-8', 'hex', secret)
                 }
                 
 
                 if(result[0].iban !== null){
                     iban = await decypher_data(result[0].iban, 'hex', 'utf-8', private_key)
-                    iban = hide_data(iban, 5);
+                    if (iban.length > 0)
+                        iban = hide_data(iban, 5);
                     iban = await cypher_data(iban, 'utf-8', 'hex', secret)
                 }
                 
                 
                 if(result[0].email !== null){
                     email = await decypher_data(result[0].email, 'hex', 'utf-8', private_key)
-                    email = hide_data(email, 5);
+                    if (email.length > 0)
+                        email = hide_data(email, 5);
                     email = await cypher_data(email, 'utf-8', 'hex', secret)
                 }
                 
 
                 if(result[0].telefone != null){
                     telefone = await decypher_data(result[0].telefone, 'hex', 'utf-8', private_key)
-                    telefone = hide_data(telefone, 4);
+                    if (telefone.length > 0)
+                        telefone = hide_data(telefone, 5);
                     telefone = await cypher_data(telefone, 'utf-8', 'hex', secret)
 
                 }
@@ -229,6 +239,8 @@ async function save_client_information(req, res) {
                 if (err) throw err;
                 console.log("Client Updated.");
             });
+
+            res.send(JSON.stringify({success: "Critical data Updated."}));
         }
     });
 }

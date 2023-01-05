@@ -1,7 +1,7 @@
 const fs = require('fs');
 const config = {
     host: "192.168.0.100",
-    user: "nodejs2",
+    user: "nodejs",
     password: "password",
     database: "remotedb",
     ssl: {
