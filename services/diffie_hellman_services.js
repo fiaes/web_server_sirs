@@ -53,19 +53,25 @@ async function start_diffie_hellman(req, res) {
     const alicePrime = alice.getPrime();
     const aliceGenerator = alice.getGenerator();
 
-    console.log("Values sent:");
+    console.log("Values Created in Diffie-Hellman:");
     console.log("\t Alicekey: " + aliceKey.toString('hex'));
     console.log("\t AlicePrime: " + alicePrime.toString('hex'));
     console.log("\t AliceGenerator: " + aliceGenerator.toString('hex'));
 
-    const now = new Date().getTime().toString()
+    const now = new Date().getTime().toString();
     console.log("\t TimeStamp: " + now);
+
     //Preparing values to be sent signed by client's public key
     const encrypted_aliceKey = crypto.publicEncrypt(client_public_key, aliceKey);
     const encrypted_alicePrime = crypto.publicEncrypt(client_public_key, alicePrime);
     const encrypted_aliceGenerator = crypto.publicEncrypt(client_public_key, aliceGenerator);
     const encrypted_timestamp = crypto.publicEncrypt(client_public_key, Buffer.from(now));
-    
+
+    console.log("Values Created in Diffie-Hellman encrypted with the client's public key:");
+    console.log("\t Encrypted Alicekey: " + encrypted_aliceKey.toString('hex'));
+    console.log("\t Encrypted AlicePrime: " + encrypted_alicePrime.toString('hex'));
+    console.log("\t Encrypted AliceGenerator: " + encrypted_aliceGenerator.toString('hex'));
+    console.log("\t Encrypted TimeStamp: " + encrypted_timestamp.toString('hex'));
 
     //Signing values to be sent
     const sign = crypto.createSign('RSA-SHA256');
@@ -99,56 +105,22 @@ async function end_diffie_hellman(req, res) {
     const signature = Buffer.from(request.signature);
     
     const verify = crypto.createVerify('RSA-SHA256');
-    verify.write(Buffer.from(request.encrypted_alicePrime));
-    verify.write(Buffer.from(request.encrypted_aliceGenerator));
-    verify.write(Buffer.from(request.encrypted_aliceKey));
     verify.write(Buffer.from(request.encrypted_bobKey));
     verify.end();
 
     if(!verify.verify(client_public_key, signature)){
-        console.log("Signature not verified.")
+        console.log("Signature is not verified.")
         return;
     }
 
-    //Values to createDiffieHellman
-    //TODO: retirar alice things there is no need
-    const alicePrime = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_alicePrime));
-    const aliceGenerator = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceGenerator));
-    const alicekey = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_aliceKey));
-    const bobKey = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_bobKey));
+    console.log("The signature was verified.")
 
-    console.log("Values recieved (Decrypted):");
-    console.log("\t AlicePrime: " + alicePrime.toString('hex'));
-    console.log("\t AliceGenerator: " + aliceGenerator.toString('hex'));
-    console.log("\t AliceKey: " + alicekey.toString('hex'));
+    //Values to createDiffieHellman
+    const bobKey = crypto.privateDecrypt(private_key, Buffer.from(request.encrypted_bobKey));
     console.log("\t BobKey: " + bobKey.toString('hex'));
 
     secret = alice.computeSecret(bobKey);
     
-
-    //Insert || Update the secret with the local storage hash
-    // const select_keysession = "SELECT keysession FROM Keysession_table WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';";
-    // connection.query(select_keysession, async function(err, result, fields) {
-    //     if (err) throw err;
-
-    //     //TODO: Cypher session key with Server KEK
-
-    //     if(result.length == 0){
-            
-    //         const insert_keysession = "INSERT INTO Keysession_table (keysession, rnd_hash, ts) VALUES ('"+ secret.toString('hex') +"', '"+ rnd_hash +"', now())";
-    //         connection.query(insert_keysession, function(err, result, fields) {
-    //             if (err) throw err;
-    //             console.log("Row Inserted.");
-    //         });
-    //     }else{
-    //         const update_keysession = "UPDATE Keysession_table SET Keysession_table.keysession = '"+ secret.toString('hex') +"' WHERE Keysession_table.rnd_hash LIKE '"+ rnd_hash +"';"
-    //         connection.query(update_keysession, function(err, result, fields) {
-    //             if (err) throw err;
-    //             console.log("Row Updated.");
-    //         });
-    //     }
-    // });
-
     const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
     connection.query(selectClientID, function(err, result, fields) {
         if (err) throw err;
@@ -172,44 +144,78 @@ async function end_diffie_hellman(req, res) {
 
                 console.log(result[0])
 
+                console.log("The critical data present in Database:")
                 if(result[0].morada !== null){
-                    morada = await decypher_data(result[0].morada, 'hex', 'utf-8', private_key)
-                    if (morada.length > 0)
-                        morada = hide_data(morada, 5);
-                    morada = await cypher_data(morada, 'utf-8', 'hex', secret)
                     
+                    morada = await decypher_data(result[0].morada, 'hex', 'utf-8', private_key)
+                    console.log("\t Morada:")
+                    console.log("\t\t Database (Encrypted with key): " + result[0].morada)
+                    console.log("\t\t Database (Decrypted with key): " + morada)
+                    if (morada.length > 0){
+                        morada = hide_data(morada, 5);
+                        console.log("\t\t Hide the data: " + morada)
+                    }
+                    morada = await cypher_data(morada, 'utf-8', 'hex', secret)
+                    console.log("\t\t Data encrypted with the shared key: " + morada)
                 }
         
                 if(result[0].nif !== null){
                     nif = await decypher_data(result[0].nif, 'hex', 'utf-8', private_key)
-                    if (nif.length > 0)
+                    console.log("\t NIF:")
+                    console.log("\t\t Database (Encrypted with key): " + result[0].nif)
+                    console.log("\t\t Database (Decrypted with key): " + nif)
+                    if (nif.length > 0){
                         nif = hide_data(nif, 5);
+                        console.log("\t\t Hide the data: " + nif)
+                    }
+                        
                     nif = await cypher_data(nif, 'utf-8', 'hex', secret)
+                    console.log("\t\t Data encrypted with the shared key: " + nif)
                 }
                 
 
                 if(result[0].iban !== null){
-                    iban = await decypher_data(result[0].iban, 'hex', 'utf-8', private_key)
-                    if (iban.length > 0)
+                    iban = await decypher_data(result[0].iban, 'hex', 'utf-8', private_key);
+                    console.log("\t IBAN:")
+                    console.log("\t\t Database (Encrypted with key): " + result[0].iban)
+                    console.log("\t\t Database (Decrypted with key): " + iban)
+                    if (iban.length > 0){
                         iban = hide_data(iban, 5);
+                        console.log("\t\t Hide the data: " + iban)
+                    }
+                        
                     iban = await cypher_data(iban, 'utf-8', 'hex', secret)
+                    console.log("\t\t Data encrypted with the shared key: " + iban)
                 }
                 
                 
                 if(result[0].email !== null){
-                    email = await decypher_data(result[0].email, 'hex', 'utf-8', private_key)
-                    if (email.length > 0)
+                    email = await decypher_data(result[0].email, 'hex', 'utf-8', private_key);
+                    console.log("\t Email:");
+                    console.log("\t\t Database (Encrypted with key): " + result[0].email);
+                    console.log("\t\t Database (Decrypted with key): " + email);
+                    if (email.length > 0){
                         email = hide_data(email, 5);
+                        console.log("\t\t Hide the data: " + email);
+                    }
+                        
                     email = await cypher_data(email, 'utf-8', 'hex', secret)
+                    console.log("\t\t Data encrypted with the shared key: " + email)
                 }
                 
 
                 if(result[0].telefone != null){
-                    telefone = await decypher_data(result[0].telefone, 'hex', 'utf-8', private_key)
-                    if (telefone.length > 0)
+                    telefone = await decypher_data(result[0].telefone, 'hex', 'utf-8', private_key);
+                    console.log("\t Telefone:");
+                    console.log("\t\t Database (Encrypted with key): " + result[0].telefone);
+                    console.log("\t\t Database (Decrypted with key): " + telefone);
+                    if (telefone.length > 0){
                         telefone = hide_data(telefone, 5);
+                        console.log("\t\t Hide the data: " + telefone);
+                    }
+                        
                     telefone = await cypher_data(telefone, 'utf-8', 'hex', secret)
-
+                    console.log("\t\t Data encrypted with the shared key: " + telefone)
                 }
                 console.log(JSON.stringify({morada: morada, nif: nif, iban: iban, email: email, telefone: telefone}))
 
@@ -251,16 +257,18 @@ async function save_client_information(req, res) {
     const selectClientID = "SELECT clientID FROM Session_table WHERE rnd_hash LIKE '"+ rnd_hash +"';";
     connection.query(selectClientID, async function(err, result, fields) {
         if (err) throw err;
-        console.log("rnd_hash")
-        console.log(rnd_hash)
 
-
-
-        
         if(result.length == 0){
             console.log("No clientID found, in save_client_information.");
 
         }else{
+            console.log("Saving Critial Data:")
+            console.log("\t Encrypted Data with the Shared Key:")
+            console.log("\t\t" + request.morada)
+            console.log("\t\t" + request.nif)
+            console.log("\t\t" + request.iban)
+            console.log("\t\t" + request.email)
+            console.log("\t\t" + request.telefone)
 
             //Decypher with the session key
             const decrypted_morada = await decypher_data(request.morada, 'hex', 'utf-8', secret.toString('hex'));
@@ -269,6 +277,13 @@ async function save_client_information(req, res) {
             const decrypted_email = await decypher_data(request.email, 'hex', 'utf-8', secret.toString('hex'));
             const decrypted_telefone =  await decypher_data(request.telefone, 'hex', 'utf-8', secret.toString('hex'));
 
+            console.log("\t Decrypted Data with the Shared Key:")
+            console.log("\t\t" + decrypted_morada)
+            console.log("\t\t" + decrypted_nif)
+            console.log("\t\t" + decrypted_iban)
+            console.log("\t\t" + decrypted_email)
+            console.log("\t\t" + decrypted_telefone)
+
 
             //Cypher with the private key
             const encrypted_morada = await cypher_data(decrypted_morada, 'utf-8', 'hex', private_key);
@@ -276,6 +291,13 @@ async function save_client_information(req, res) {
             const encrypted_iban = await cypher_data(decrypted_iban, 'utf-8', 'hex', private_key);
             const encrypted_email = await cypher_data(decrypted_email, 'utf-8', 'hex', private_key);
             const encrypted_telefone = await cypher_data(decrypted_telefone, 'utf-8', 'hex', private_key);
+
+            console.log("\t Encrypted Data to be sent to the Database:")
+            console.log("\t\t" + encrypted_morada)
+            console.log("\t\t" + encrypted_nif)
+            console.log("\t\t" + encrypted_iban)
+            console.log("\t\t" + encrypted_email)
+            console.log("\t\t" + encrypted_telefone)
 
             const clientID = result[0].clientID;
 
